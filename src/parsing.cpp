@@ -1,4 +1,5 @@
 #include "parsing.h"
+#include <regex>
 
 std::string parsing::string_tolower(std::string str){
   unsigned int input_size = str.size();
@@ -21,22 +22,24 @@ std::string parsing::scheme(std::string& url){
   return output;
 }
 
+static std::regex rx("^(\\w+:\\w+@).*");
 std::vector < std::string > parsing::domain_and_port(std::string& url){
   
   std::vector < std::string > output(2);
   std::string holding;
   unsigned int output_offset = 0;
   
-  // Check for the presence of user authentication info. If it exists, dump it.
-  // Use a query-check here because some people put @ info in params, baaah
+  // Check for auth credentials
   std::size_t f_param = url.find("?");
   std::size_t auth;
-  if(f_param != std::string::npos){
-    auth = url.substr(0, f_param).find("@");
-  } else {
-    auth = url.find("@");
-  }
-  if(auth != std::string::npos){
+  std::smatch matches;
+  
+  if(std::regex_search( url, matches, rx ) == 1){
+    if(f_param != std::string::npos){
+      auth = url.substr(0, f_param).find("@");
+    } else {
+      auth = url.find("@");
+    }
     url = url.substr(auth+1);
   }
   
